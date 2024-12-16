@@ -1,34 +1,51 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import axios from 'axios'
+import {Link} from 'react-router-dom'
 
-const APP_KEY= import.meta.env.VITE_APP_KEY
-const APP_ID= import.meta.env.VITE_APP_ID
+
+const API_URL = 'https://pokeapi.co/api/v2/pokemon?limit=150'
 
 
 function App() {
-  const [recipes, setRecipes] = useState(null)
+  const [pokemons, setPokemons] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const fetchRecipes = async () => {
-    try{
-      const response = await axios.get(`https://api.edamam.com/api/recipes/v2?type=public&q=beef&app_id=${APP_ID}&app_key=${APP_KEY}`)
-      setRecipes(response.data.hits)
-    }
-    catch(err){
-      console.log(err)
-    }
 
+  const fetchPokemons = async () => {
+    try {
+      const response = await axios.get(API_URL)
+      setPokemons(response.data.results)
+    }
+    catch (err) {
+      setError(err)
+    }
+    finally {
+      setLoading(false)
+    }
+  }
+
+  const getPokemonID = (url) => {
+    let id = url.split('/')[6]
+    return id
   }
 
   useEffect(() => {
-    fetchRecipes()
-  }, [] )
-
-  console.log(recipes)
+    fetchPokemons()
+  }, [])
 
   return (
     <>
-        <h1>Recipes App</h1>
+      <h1>Welcome to my pokedex</h1>
+      {pokemons && !loading && pokemons.map((pokemon, index) => {
+          return(
+            <div key={index} className='border-solid border-2	rounded border-blue-400 mb-6 '>  
+                <Link to={`/pokemon/${getPokemonID(pokemon.url)}`} ><p>{pokemon.name}</p></Link>
+            </div>
+          )
+      })
+      }
     </>
   )
 }
